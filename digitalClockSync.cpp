@@ -23,6 +23,32 @@ int main()
     while(true){
 	getchar(); // Used in order step through the algorithms
 	printState();
+
+	/*
+	 *
+	 * Send my clock to all neighboors
+	 *
+	 */
+	for(int i = 0; i < n; i++){ // One line of pseudo code per loop
+	    for(int j = 0; j < processes[i].numberOfNeighbors; j++){ // Read all inputs
+		**(processes[i].outputs+j) = processes[i].clock;
+	    }
+	}
+
+	/*
+	 *
+	 * Read the clocks from all the neighboors and update if neccesary (dumb cond.)
+	 *
+	 */
+
+	for(int i = 0; i < n; i++){ // One line of pseudo code per loop
+	    for(int j = 0; j < processes[i].numberOfNeighbors; j++){ // Read all inputs
+		if(*(processes[i].inputs+j) > processes[i].clock){
+		    processes[i].clock = *(processes[i].inputs+j);
+		}
+	    }
+	}
+	
     }
     return 0;
 }
@@ -30,7 +56,7 @@ int main()
 
 void printState(){
     printf("       %d                                        \n       +                                         \n       |     %d                                  \n       |     +                                   \n       |     |    %d                             \n    +--+--+  |    +      %d                      \n    |  10 |  |    |      +                       \n    +--+--+  |    |      |                       \n       |     |    |   +--+--+                    \n       |     |    |   |  2  +-----------+        \n       |     |    |   +--+--+           |        \n    +--+--+  |    |      |           +--+--+     \n    |  9  +--+    +---+  |      +----+  3  +-+ %d\n    +--+--+           |  |      |    +--+--+     \n       |              +--+--+   |       |        \n       +--------------+  1  +---+       |        \n                      +--+--+           |        \n                      |  |              |        \n       +--------------+  |           +--+--+     \n       |                 |           |  4  +-+ %d\n    +--+--+              |           +--+--+     \n+---+  6  +----+         |              |        \n|   +--+--+    |      +--+--+           |        \n|      |       +------+  5  +-----------+        \n|      |              +--+--+                    \n|   +--+--+              |                       \n|   |  7  +--+           +---+ %d                \n|   +--+--+  |                                   \n|      |     +---+ %d                            \n|      |                                         \n|   +--+--+                                      \n|   |  8  +---+ %d                               \n|   +-----+                                      \n|                                                \n+---+ %d                                         \n",
-	   1,2,3,4,5,6,7,8,9,10);
+	   processes[9].clock, processes[8].clock, processes[0].clock, processes[1].clock, processes[2].clock, processes[3].clock, processes[4].clock, processes[6].clock, processes[7].clock, processes[5].clock);//10,9,1,2,3,4,5,7,8,6); // This is the order
 }
 
 void initAndRoute(){
@@ -39,7 +65,7 @@ void initAndRoute(){
     processes[1].numberOfNeighbors = 2;
     processes[2].numberOfNeighbors = 3;
     processes[3].numberOfNeighbors = 2;
-    processes[4].numberOfNeighbors = 4;
+    processes[4].numberOfNeighbors = 3;
     processes[5].numberOfNeighbors = 3;
     processes[6].numberOfNeighbors = 2;
     processes[7].numberOfNeighbors = 1;
@@ -48,10 +74,12 @@ void initAndRoute(){
 
     // Initialize the channels
     for(int i = 0; i < n; i++){
+	processes[i].clock = 0;
 	processes[i].inputs = (int *)malloc(sizeof(int)*processes[i].numberOfNeighbors);
 	processes[i].outputs = (int **)malloc(sizeof(int*)*processes[i].numberOfNeighbors); // One pointer/input
     }
-
+    processes[0].clock = 1;
+    
     // Perform the routing -- starting from the topmost process and go clock-wise
 
     // Processor 1
@@ -72,7 +100,7 @@ void initAndRoute(){
   
     // Processor 4
     *(processes[3].outputs) = (processes[2].inputs+2);
-    *(processes[3].outputs) = (processes[4].inputs+1);
+    *(processes[3].outputs+1) = (processes[4].inputs+1);
 
     // Processor 5
     *(processes[4].outputs) = (processes[3].inputs+1);
@@ -81,19 +109,19 @@ void initAndRoute(){
 
     // Processor 6
     *(processes[5].outputs) = (processes[0].inputs+3);
-    *(processes[5].outputs) = (processes[4].inputs+2);
-    *(processes[5].outputs) = (processes[6].inputs);
+    *(processes[5].outputs+1) = (processes[4].inputs+2);
+    *(processes[5].outputs+2) = (processes[6].inputs);
 
     // Processor 7
     *(processes[6].outputs) = (processes[5].inputs+2);
-    *(processes[6].outputs) = (processes[7].inputs);
+    *(processes[6].outputs+1) = (processes[7].inputs);
     
     // Processor 8
     *(processes[7].outputs) = (processes[6].inputs+1);
     
     // Processor 9
     *(processes[8].outputs) = (processes[0].inputs+4);
-    *(processes[8].outputs) = (processes[9].inputs);
+    *(processes[8].outputs+1) = (processes[9].inputs);
 
     // Processor 10
     *(processes[9].outputs) = (processes[8].inputs+1);
