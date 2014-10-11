@@ -1,18 +1,8 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-"""
-ZetCode Tkinter tutorial
-
-In this script, we draw text
-on the window.
-
-author: Jan Bodar
-last modified: December 2010
-website: www.zetcode.com
-"""
-
 from Tkinter import *
+import socket
 
 def getCoord(x_offset,y_offset):
     return 400+x_offset,170+y_offset,460+x_offset,230+y_offset
@@ -23,6 +13,7 @@ def getLineCoord(x_offset,y_offset):
 def getNumCoord(x_offset,y_offset):
     return 428+x_offset,200+y_offset
 
+    
 class Example(Frame):
   
     def __init__(self, parent):
@@ -42,13 +33,16 @@ class Example(Frame):
         self.drawBase()
         
         # Setup the socket
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client_socket.connect(('localhost', 5899))
+
         # Read the first values
-        # Request the next values
+        data = self.getData(self)        
 
         # Draw text 
         for i in range(0,10):
-            self.canvas.create_text(*getNumCoord(*self.coordinates[i]), anchor=W, font="Purisa",
-            text="1")
+            self.canvas.create_text(*getNumCoord(*self.coordinates[i]), anchor=W, font="Arial",
+                                    text=data[i])
 
         b = Button(self.canvas, text="Step", width=30, command=self.update)
         b.pack(side=BOTTOM)
@@ -64,13 +58,20 @@ class Example(Frame):
         self.canvas.delete("all") # Redraw the canvas
         
         self.drawBase()
+        data = self.getData(self)
 
         # Draw text 
         for i in range(0,10):
-            self.canvas.create_text(*getNumCoord(*self.coordinates[i]), anchor=W, font="Purisa",
-            text="2")
+            self.canvas.create_text(*getNumCoord(*self.coordinates[i]), anchor=W, font="Arial",
+                                    text=data[i])
 
         self.canvas.pack(fill=BOTH, expand=1)
+
+    def getData(self):
+        raw_data = self.client_socket.recv(1024)
+        data  = raw_data.split(",")
+        data = filter(None, data)
+        return data
 
 
     def drawBase(self):
