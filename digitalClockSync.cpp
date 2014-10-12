@@ -12,6 +12,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#include <time.h>  
+
 #include <vector>
 #include <algorithm>
 
@@ -26,7 +28,7 @@ const size_t kTransferBufferSize = 64;
 const int kServerBacklog = 8;
 
 typedef struct {
-    int clock;
+    int clock, min;
     int numberOfNeighbors;
     int *inputs; // This is the recieve channel
     int **outputs; // This is the output channels
@@ -70,26 +72,50 @@ int main()
 	/*
 	 *
 	 * Send my clock to all neighboors
+	 * "forall Pj <- N(i) ...."
 	 *
 	 */
 	for(int i = 0; i < n; i++){ // One line of pseudo code per loop
-	    for(int j = 0; j < processes[i].numberOfNeighbors; j++){ // Read all inputs
+	    for(int j = 0; j < processes[i].numberOfNeighbors; j++){ 
 		**(processes[i].outputs+j) = processes[i].clock;
 	    }
+	}
+	
+	/*
+	 *
+	 * "min := clock_i"
+	 *
+	 */
+
+	for(int i = 0; i < n; i++){ // One line of pseudo code per loop
+	    processes[i].min = processes[i].clock;
 	}
 
 	/*
 	 *
-	 * Read the clocks from all the neighboors and update if neccesary (dumb cond.)
-	 *
+	 * Read the clocks from all my neighboors if clock < min then min := clock
+	 * "for all Pj <- Ni recieve clock"
 	 */
 
 	for(int i = 0; i < n; i++){ // One line of pseudo code per loop
 	    for(int j = 0; j < processes[i].numberOfNeighbors; j++){ // Read all inputs
-		if(*(processes[i].inputs+j) > processes[i].clock){
-		    processes[i].clock = *(processes[i].inputs+j);
+		if(*(processes[i].inputs+j) < processes[i].min){
+		    processes[i].min = *(processes[i].inputs+j);
 		}
 	    }
+	}
+	
+
+	/*
+	 *
+	 * clock_i = (min+1) mod (2d + 1), d = 5 in this graph?
+	 *
+	 */
+	
+	int d = 5;
+	
+	for(int i = 0; i < n; i++){ // One line of pseudo code per loop
+	    processes[i].clock = (processes[i].min+1) % (2*d + 1);
 	}
 
 	/********************************************************************************************/
@@ -99,8 +125,6 @@ int main()
 	if(ret == 0 || ret == -1)
 	    break;
 	sendState(clientfd);
-
-
 	
     }
     close(listenfd);
@@ -155,7 +179,15 @@ void initAndRoute(){
 	processes[i].inputs = (int *)malloc(sizeof(int)*processes[i].numberOfNeighbors);
 	processes[i].outputs = (int **)malloc(sizeof(int*)*processes[i].numberOfNeighbors); // One pointer/input
     }
-    processes[0].clock = 1;
+
+    /*
+     * Randomize initial clocks..
+     *
+     */
+    srand (time(NULL));
+    for (int i = 0; i < n; i++) {
+	processes[i].clock = rand() % 100;
+    }
     
     // Perform the routing -- starting from the topmost process and go clock-wise
 
