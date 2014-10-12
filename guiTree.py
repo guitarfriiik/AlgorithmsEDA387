@@ -44,16 +44,25 @@ class Example(Frame):
             self.canvas.create_text(*getNumCoord(*self.coordinates[i]), anchor=W, font="Arial",
                                     text=data[i])
 
-        b = Button(self.canvas, text="Step", width=30, command=self.update)
-        b.pack(side=BOTTOM)
+        newCan = Canvas(self.canvas, bg = "gray")
+        newCan.pack(side=BOTTOM)
 
-        
+        b = Button(newCan, text="Step (Cycle)", command=self.step)
+        b.pack(side=RIGHT)
+
+        c = Button(newCan, text="Randomize", command=self.randomize)
+        c.pack(side=RIGHT)
+
+        d = Button(newCan, text="Inject Fault", command=self.fault)
+        d.pack(side=RIGHT)        
 
         self.canvas.pack(fill=BOTH, expand=1)
 
-    def update(self):
+    def step(self):
         self.client_socket.send("dummy")
-        
+        self.update()
+    
+    def update(self):
         self.parent.title("Networking Tree")        
         self.pack(fill=BOTH, expand=1)
         
@@ -68,6 +77,14 @@ class Example(Frame):
                                     text=data[i])
 
         self.canvas.pack(fill=BOTH, expand=1)
+
+    def randomize(self):
+        self.client_socket.send("randomize")
+        self.update()
+
+    def fault(self):
+        self.client_socket.send("fault")
+        self.update()
 
     def getData(self):
         raw_data = self.client_socket.recv(1024)

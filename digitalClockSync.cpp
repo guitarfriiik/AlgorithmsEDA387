@@ -14,6 +14,8 @@
 
 #include <time.h>  
 
+#include <string.h>
+
 #include <vector>
 #include <algorithm>
 
@@ -42,6 +44,9 @@ int awaitRequest(int fd);
 
 static int setup_server_socket( short port );
 void sendState(int fd);
+
+void randomize(void);
+void fault(void);
 
 int main()
 {
@@ -136,7 +141,34 @@ int awaitRequest(int fd){
     char recvBuff[1024];
     memset(recvBuff, 0 ,sizeof(recvBuff));
     ssize_t num = recv(fd, recvBuff, sizeof(recvBuff)-1, 0); // For now, just block untill the gui request the next results.. (Dont care about the result..)
+    if(strncmp(recvBuff, "fault", 1024-1) == 0){
+	fault();
+    }
+    else if(strncmp(recvBuff, "randomize", 1024-1) == 0){
+	randomize();
+    }
     return (int)num;
+}
+
+
+void randomize(void){
+    /*
+     * Randomize clocks..
+     *
+     */
+    srand (time(NULL));
+    for (int i = 0; i < n; i++) {
+	processes[i].clock = rand() % 100;
+    }
+}
+void fault(void){
+    // Randomly inject a fault in one of the processors
+    srand (time(NULL));
+    int i = rand() % 10 - 1;
+    int temp = rand() % 100;
+    while(processes[i].clock == temp)
+	temp = rand() % 100;
+    processes[i].clock = temp;
 }
 
 
@@ -180,14 +212,7 @@ void initAndRoute(){
 	processes[i].outputs = (int **)malloc(sizeof(int*)*processes[i].numberOfNeighbors); // One pointer/input
     }
 
-    /*
-     * Randomize initial clocks..
-     *
-     */
-    srand (time(NULL));
-    for (int i = 0; i < n; i++) {
-	processes[i].clock = rand() % 100;
-    }
+    randomize();
     
     // Perform the routing -- starting from the topmost process and go clock-wise
 
@@ -274,11 +299,11 @@ static int setup_server_socket( short port )
 		return -1;
 	}
 
-	char actualBuff[128];
-	printf( "Socket is bound to %s %d\n", 
-		inet_ntop( AF_INET, &actualAddr.sin_addr, actualBuff, sizeof(actualBuff) ),
-		ntohs(actualAddr.sin_port)
-	);
+	//char actualBuff[128];
+	//printf( "Socket is bound to %s %d\n", 
+	//	inet_ntop( AF_INET, &actualAddr.sin_addr, actualBuff, sizeof(actualBuff) ),
+	//	ntohs(actualAddr.sin_port)
+	//);
 
 	// and start listening for incoming connections
 	if( -1 == listen( fd, kServerBacklog ) )
