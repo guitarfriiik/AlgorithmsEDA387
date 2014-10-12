@@ -63,6 +63,8 @@ int main()
     // Create a dummy recieve - use instead of getChar and fix the ending
 
     while(true){
+	
+
 	/******************************* This is the psuedo code for the algorithm *******************/
 
 	/*
