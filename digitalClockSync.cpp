@@ -117,7 +117,7 @@ int main()
 	 *
 	 */
 	
-	int d = 5;
+	int d = 4;
 	
 	for(int i = 0; i < n; i++){ // One line of pseudo code per loop
 	    processes[i].clock = (processes[i].min+1) % (2*d + 1);
@@ -299,13 +299,6 @@ static int setup_server_socket( short port )
 		return -1;
 	}
 
-	//char actualBuff[128];
-	//printf( "Socket is bound to %s %d\n", 
-	//	inet_ntop( AF_INET, &actualAddr.sin_addr, actualBuff, sizeof(actualBuff) ),
-	//	ntohs(actualAddr.sin_port)
-	//);
-
-	// and start listening for incoming connections
 	if( -1 == listen( fd, kServerBacklog ) )
 	{
 		perror( "listen() failed" );
@@ -321,15 +314,6 @@ static int setup_server_socket( short port )
 		close( fd );
 		return -1;
 	}
-
-// #	if NONBLOCKING
-// 	// enable non-blocking mode
-// 	if( !set_socket_nonblocking( fd ) )
-// 	{
-// 		close( fd );
-// 		return -1;
-// 	}
-// #	endif
 
 	return fd;
 }
