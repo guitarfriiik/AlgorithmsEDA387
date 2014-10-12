@@ -19,7 +19,7 @@
 #define NONBLOCKING 0
 
 
-const int kServerPort = 5899;
+const int kServerPort = 5789;
 
 const size_t kTransferBufferSize = 64;
 
@@ -36,6 +36,7 @@ process processes[n];
 
 void initAndRoute();
 void printState();
+int awaitRequest(int fd);
 
 static int setup_server_socket( short port );
 void sendState(int fd);
@@ -55,20 +56,14 @@ int main()
     if( -1 == clientfd )
 	{
 	    perror( "accept() failed" );
+	    return 1;
 	}
     
-
-    printf("Accpeted \n"); // Send the initial states
-
     sendState(clientfd);
     // Create a dummy recieve - use instead of getChar and fix the ending
-    
-    close(clientfd);
-    close(listenfd);
 
     while(true){
-	getchar(); // Used in order step through the algorithms
-	printState();
+	/******************************* This is the psuedo code for the algorithm *******************/
 
 	/*
 	 *
@@ -94,9 +89,28 @@ int main()
 		}
 	    }
 	}
+
+	/********************************************************************************************/
+
+	/** Send the new state */
+	int ret = awaitRequest(clientfd);
+	if(ret == 0 || ret == -1)
+	    break;
+	sendState(clientfd);
+
+
 	
     }
+    close(listenfd);
+    close(clientfd);
     return 0;
+}
+
+int awaitRequest(int fd){
+    char recvBuff[1024];
+    memset(recvBuff, 0 ,sizeof(recvBuff));
+    ssize_t num = recv(fd, recvBuff, sizeof(recvBuff)-1, 0); // For now, just block untill the gui request the next results.. (Dont care about the result..)
+    return (int)num;
 }
 
 
@@ -216,7 +230,7 @@ static int setup_server_socket( short port )
 
 	// get local address (i.e. the address we ended up being bound to)
 	sockaddr_in actualAddr;
-	socklen_t actualAddrLen = sizeof(actualAddr);
+ 	socklen_t actualAddrLen = sizeof(actualAddr);
 	memset( &actualAddr, 0, sizeof(actualAddr) );
 
 	if( -1 == getsockname( fd, (sockaddr*)&actualAddr, &actualAddrLen ) )
@@ -249,14 +263,14 @@ static int setup_server_socket( short port )
 		return -1;
 	}
 
-#	if NONBLOCKING
-	// enable non-blocking mode
-	if( !set_socket_nonblocking( fd ) )
-	{
-		close( fd );
-		return -1;
-	}
-#	endif
+// #	if NONBLOCKING
+// 	// enable non-blocking mode
+// 	if( !set_socket_nonblocking( fd ) )
+// 	{
+// 		close( fd );
+// 		return -1;
+// 	}
+// #	endif
 
 	return fd;
 }

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from Tkinter import *
-import socket
+import socket, os
 
 def getCoord(x_offset,y_offset):
     return 400+x_offset,170+y_offset,460+x_offset,230+y_offset
@@ -34,10 +34,10 @@ class Example(Frame):
         
         # Setup the socket
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_socket.connect(('localhost', 5899))
+        self.client_socket.connect(('localhost', 5789))
 
         # Read the first values
-        data = self.getData(self)        
+        data = self.getData()        
 
         # Draw text 
         for i in range(0,10):
@@ -52,13 +52,15 @@ class Example(Frame):
         self.canvas.pack(fill=BOTH, expand=1)
 
     def update(self):
+        self.client_socket.send("dummy")
+        
         self.parent.title("Networking Tree")        
         self.pack(fill=BOTH, expand=1)
         
         self.canvas.delete("all") # Redraw the canvas
         
         self.drawBase()
-        data = self.getData(self)
+        data = self.getData()
 
         # Draw text 
         for i in range(0,10):
@@ -102,10 +104,12 @@ class Example(Frame):
 
 def main():
     # start Main application
+    os.system("./digitalClockSync.out &")
     root = Tk()
     ex = Example(root)
     root.geometry("820x450+300+300")
-    root.mainloop()  
+    root.mainloop()
+    ex.client_socket.close()
 
 if __name__ == '__main__':
     main()  
