@@ -30,7 +30,7 @@ const size_t kTransferBufferSize = 64;
 const int kServerBacklog = 8;
 
 typedef struct {
-    int clock, min;
+    int clock, max;
     int numberOfNeighbors;
     int *inputs; // This is the recieve channel
     int **outputs; // This is the output channels
@@ -93,7 +93,7 @@ int main()
 	 */
 
 	for(int i = 0; i < n; i++){ // One line of pseudo code per loop
-	    processes[i].min = processes[i].clock;
+	    processes[i].max = processes[i].clock;
 	}
 
 	/*
@@ -104,8 +104,8 @@ int main()
 
 	for(int i = 0; i < n; i++){ // One line of pseudo code per loop
 	    for(int j = 0; j < processes[i].numberOfNeighbors; j++){ // Read all inputs
-		if(*(processes[i].inputs+j) < processes[i].min){
-		    processes[i].min = *(processes[i].inputs+j);
+		if(*(processes[i].inputs+j) > processes[i].max){
+		    processes[i].max = *(processes[i].inputs+j);
 		}
 	    }
 	}
@@ -117,10 +117,10 @@ int main()
 	 *
 	 */
 	
-	int d = 5;
+	int d = 4;
 	
 	for(int i = 0; i < n; i++){ // One line of pseudo code per loop
-	    processes[i].clock = (processes[i].min+1) % (2*d + 1);
+	    processes[i].clock = (processes[i].max+1) % ((n+1)*d + 1);
 	}
 
 	/********************************************************************************************/
@@ -158,7 +158,7 @@ void randomize(void){
      */
     srand (time(NULL));
     for (int i = 0; i < n; i++) {
-	processes[i].clock = rand() % 100;
+	processes[i].clock = rand() % 40;
     }
 }
 void fault(void){
