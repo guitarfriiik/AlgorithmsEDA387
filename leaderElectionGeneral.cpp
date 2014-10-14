@@ -87,8 +87,8 @@ int main()
 	    int distance = 0;
 
 	    for(int j = 0; j < processes[i].numberOfNeighbors; j++){
-		int tempLeader = processes[j].leader;
-		int tempDistance = processes[j].distance;
+		int tempLeader = processes[processes[i].neighbors[j]].leader;
+		int tempDistance = processes[processes[i].neighbors[j]].distance;
 		
 		if(((tempDistance < n-1) && (tempLeader < candidate)) || ((tempLeader == candidate) && (tempDistance < distance))){
 		    candidate = tempLeader;
