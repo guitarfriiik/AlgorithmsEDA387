@@ -76,7 +76,7 @@ int main()
 
 	/******************************* This is the psuedo code for the algorithm *******************/
 
-	for(int i = 0; i < n; i++){
+	for(int i = n-1; i >= 0; i--){
 	    
 	    /*
 	     * 
@@ -99,17 +99,16 @@ int main()
 
 	    processes[i].leader = candidate;
 	    processes[i].distance = distance;
+	    int ret = awaitRequest(clientfd);
+	    if(ret == 0 || ret == -1)
+		goto exit;
+	    sendState(clientfd);
 
 	}
 	/********************************************************************************************/
-
-	/** Send the new state */
-	int ret = awaitRequest(clientfd);
-	if(ret == 0 || ret == -1)
-	    break;
-	sendState(clientfd);
 	
     }
+ exit:
     close(listenfd);
     close(clientfd);
     return 0;
@@ -136,8 +135,9 @@ void randomize(void){
      */
     srand (time(NULL));
     for (int i = 0; i < n; i++) {
+	
 	processes[i].leader = rand() % 100;
-	srand (time(NULL));
+	
 	processes[i].distance = rand() % 100;
     }
 }
